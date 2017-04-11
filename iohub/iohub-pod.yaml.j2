@@ -1,0 +1,43 @@
+
+apiVertion: v1
+kind: Service
+metadata:
+  name: iohub-{{ IOHUB_NAME }}
+  labels:
+    name: iohub-svc-{{ IOHUB_NAME }}
+    group: {{ IOHUB_GROUP }}
+
+spec:
+  type: NodePort
+  ports:
+    - port: 22
+      name: ssh
+  selector:
+    name: iohub-{{ IOHUB_NAME }}
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: iohub-{{ IOHUB_NAME }}
+    group: {{ IOHUB_GROUP }}
+  name: iohub-{{ IOHUB_NAME }}
+spec:
+  containers:
+  - image: {{ IOHUB_IMAGE }}
+    name: iohub-{{ IOHUB_NAME }}
+    ports:
+      - containerPort: 22
+    env:
+      - name: SSH_KEY
+        value: /root/.ssh/id_rsa
+    volumeMounts:
+    - mountPath: /root/.ssh
+      name: ssh-keys
+      readOnly: false
+  volumes:
+  - name: ssh-keys
+    secret:
+      secretName: {{ IOHUB_SSH_SECRET }}
+      defaultMode: 256
